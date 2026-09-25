@@ -5,8 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "start": "next start"
   },
   "dependencies": {
     "@fontsource/vazirmatn": "latest",
@@ -18,12 +17,13 @@
     "recharts": "latest"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "latest",
     "@types/leaflet": "latest",
     "@types/node": "latest",
     "@types/react": "latest",
-    "autoprefixer": "10.4.20",
-    "postcss": "8.4.47",
-    "tailwindcss": "3.4.17",
+    "autoprefixer": "latest",
+    "postcss": "latest",
+    "tailwindcss": "latest",
     "typescript": "latest"
   }
 }
