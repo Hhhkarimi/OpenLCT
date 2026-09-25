@@ -1,10 +1,7 @@
-export default function LastMile(){
-return <main>
-<h1 className="text-3xl font-bold mb-8">Last Mile Command Center</h1>
-<div className="grid md:grid-cols-3 gap-5">
-<div className="rounded-xl border bg-white p-5">سفارش فعال: ۱۰۰۰</div>
-<div className="rounded-xl border bg-white p-5">ناوگان پیک: ۱۲۰۰۰</div>
-<div className="rounded-xl border bg-white p-5">SLA هدف: زیر ۳۰ دقیقه</div>
-</div>
-</main>
-}
+"use client";
+import { orders } from "../../data/orders";
+import { useScenario } from "../../components/ScenarioProvider";
+import { KpiCard,RiskBadge,SectionTitle } from "../../components/ui";
+import type { RiskLevel } from "../../types/logistics";
+const er=(e:number):RiskLevel=>e>=38?"CRITICAL":e>30?"HIGH":e>=26?"MEDIUM":"LOW";
+export default function Page(){const {scenario,snapshot,mitigated}=useScenario();const p=(scenario.demandMultiplier-1)*18+scenario.courierPressure*15;const os=orders.map(o=>{const eta=Math.round(o.baseEta+p-(mitigated?6:0));return {...o,eta,risk:er(eta)};});return <><section className="hero compact"><div><div className="eyebrow">LAYER 03 / LAST MILE</div><h1>ارکستراسیون تحویل فوری</h1><p>تقاضای آنلاین، ظرفیت ۱۲٬۰۰۰ پیک و ریسک عبور ETA از هدف ۳۰ دقیقه.</p></div></section><section className="kpi-grid four"><KpiCard label="سفارش فعال" value={snapshot.activeOrders.toLocaleString("fa-IR")} hint="تقاضای جاری"/><KpiCard label="پیک در دسترس" value={snapshot.availableCouriers.toLocaleString("fa-IR")} hint="Pool مشترک" tone="good"/><KpiCard label="SLA زیر ۳۰ دقیقه" value={snapshot.expressSla+"%"} hint="تحویل اکسپرس" tone={snapshot.expressSla<88?"danger":"good"}/><KpiCard label="سفارش پرریسک" value={snapshot.atRiskOrders} hint="پیش‌بینی ETA" tone={snapshot.atRiskOrders>80?"danger":"warn"}/></section><SectionTitle title="Order Flow" subtitle="نمونه سفارش‌های زنده شبیه‌سازی‌شده"/><div className="table-card"><table><thead><tr><th>سفارش</th><th>Zone</th><th>Provider</th><th>اولویت</th><th>ETA پیش‌بینی</th><th>ریسک</th></tr></thead><tbody>{os.map(o=><tr key={o.id}><td className="mono">{o.id}</td><td>{o.zone}</td><td>{o.provider}</td><td>{o.priority==="HIGH"?"بالا":"عادی"}</td><td>{o.eta} دقیقه</td><td><RiskBadge level={o.risk}/></td></tr>)}</tbody></table></div><section className="card recommendation-card standalone"><SectionTitle title="Orchestration Action" subtitle="بدون API خارجی؛ Rule-based برای MVP"/><ol className="action-list"><li>سفارش‌های ETA بالای ۳۰ دقیقه را به نزدیک‌ترین Pool آزاد Reassign کن.</li><li>برای Zoneهای پرتقاضا ظرفیت پیک رزرو کن.</li><li>موجودی شعب جایگزین را در انتخاب مبدأ سفارش لحاظ کن.</li></ol></section></>;}

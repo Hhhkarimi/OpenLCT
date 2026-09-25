@@ -1,12 +1,7 @@
-export default function DistributionPage(){
-  return (
-    <main>
-      <h1 className="text-3xl font-bold">Distribution Intelligence</h1>
-      <div className="mt-8 grid md:grid-cols-3 gap-5">
-        <div className="bg-white border rounded-xl p-5">شعب فروشگاهی: ۳۹۰۰+</div>
-        <div className="bg-white border rounded-xl p-5">ناوگان توزیع: ۶۰۰ خودرو</div>
-        <div className="bg-white border rounded-xl p-5">SLA ارسال: پایش لحظه‌ای</div>
-      </div>
-    </main>
-  );
-}
+"use client";
+import { routes } from "../../data/routes";
+import { useScenario } from "../../components/ScenarioProvider";
+import { KpiCard,RiskBadge,SectionTitle } from "../../components/ui";
+import type { RiskLevel } from "../../types/logistics";
+const rr=(d:number):RiskLevel=>d>=45?"CRITICAL":d>=30?"HIGH":d>=18?"MEDIUM":"LOW";
+export default function Page(){const {scenario,snapshot,mitigated}=useScenario();const pressure=Math.round((scenario.demandMultiplier-1)*52+scenario.distributionPenalty);const rs=routes.map(r=>{const delay=Math.max(0,Math.round(r.baseDelay+pressure+(r.type==="COLD"?scenario.coldPenalty*65:0)-(mitigated?9:0)));return {...r,delay,risk:rr(delay)};});const late=rs.filter(r=>r.delay>=30).length;return <><section className="hero compact"><div><div className="eyebrow">LAYER 02 / DISTRIBUTION</div><h1>کنترل توزیع به شعب</h1><p>هماهنگی ۶۰۰ خودرو با پنجره تخلیه شعب، ترافیک و اولویت زنجیره سرد.</p></div></section><section className="kpi-grid four"><KpiCard label="ناوگان" value="600" hint="خودروی توزیع"/><KpiCard label="Route فعال" value={snapshot.activeRoutes} hint="برآورد سناریو"/><KpiCard label="SLA توزیع" value={snapshot.distributionSla+"%"} hint="تحویل به شعب" tone={snapshot.distributionSla<88?"danger":"good"}/><KpiCard label="Route پرتاخیر" value={late} hint="نمونه نمایشی" tone={late>4?"danger":"warn"}/></section><SectionTitle title="Route Monitor" subtitle="۱۲ Route نمونه از شبکه ۶۰۰ خودرویی"/><div className="table-card"><table><thead><tr><th>Route</th><th>انبار</th><th>خودرو</th><th>نوع</th><th>شعب</th><th>خروج</th><th>تاخیر پیش‌بینی</th><th>ریسک</th></tr></thead><tbody>{rs.map(r=><tr key={r.id}><td className="mono">{r.id}</td><td>{r.warehouse}</td><td>{r.vehicle}</td><td>{r.type==="COLD"?"سرد":"خشک"}</td><td>{r.stores}</td><td>{r.departure}</td><td>{r.delay} دقیقه</td><td><RiskBadge level={r.risk}/></td></tr>)}</tbody></table></div><section className="card recommendation-card standalone"><SectionTitle title="اقدام پیشنهادی توزیع" subtitle="خروجی Decision Engine"/><ol className="action-list"><li>Routeهای سرد با ریسک بالا را قبل از Route خشک کم‌اولویت خارج کن.</li><li>شعب دارای محدودیت پارک را به پنجره کم‌ترافیک منتقل کن.</li><li>توالی توقف Routeهای پرتاخیر را بر اساس SLA بازچینی کن.</li></ol></section></>;}

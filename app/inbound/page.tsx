@@ -1,12 +1,4 @@
-export default function InboundPage(){
-  return (
-    <main>
-      <h1 className="text-3xl font-bold">Inbound Intelligence</h1>
-      <div className="mt-8 grid md:grid-cols-3 gap-5">
-        <div className="bg-white border rounded-xl p-5">انبار فعال: ۳۰</div>
-        <div className="bg-white border rounded-xl p-5">تخلیه ماهانه: ۱۰۰۰۰</div>
-        <div className="bg-white border rounded-xl p-5">ریسک صف: پایش فعال</div>
-      </div>
-    </main>
-  );
-}
+"use client";
+import { useScenario } from "../../components/ScenarioProvider";
+import { KpiCard,RiskBadge,SectionTitle } from "../../components/ui";
+export default function Page(){const {snapshot}=useScenario();const ordered=[...snapshot.warehouses].sort((a,b)=>b.riskScore-a.riskScore);const critical=ordered.filter(x=>x.risk==="CRITICAL"||x.risk==="HIGH").length;const top=ordered[0];const avg=Math.round(ordered.reduce((s,x)=>s+x.utilization,0)/ordered.length*100);return <><section className="hero compact"><div><div className="eyebrow">LAYER 01 / INBOUND</div><h1>کنترل ورودی و صف تخلیه</h1><p>۳۰ انبار منطقه‌ای، Slot ورود تامین‌کنندگان، ظرفیت Dock و زمان انتظار تخمینی.</p></div></section><section className="kpi-grid four"><KpiCard label="صف کل شبکه" value={snapshot.waitingTrucks} hint="خودروی تامین‌کننده" tone="warn"/><KpiCard label="انبار پرریسک" value={critical} hint="High + Critical" tone={critical>5?"danger":"warn"}/><KpiCard label="میانگین انتظار" value={snapshot.avgWaitMinutes+" دقیقه"} hint="در کل شبکه"/><KpiCard label="Dock Utilization" value={avg+"%"} hint="میانگین ۳۰ انبار" tone={avg>85?"danger":"good"}/></section><section className="split-grid"><article className="card focus-card"><div className="eyebrow">بزرگ‌ترین گلوگاه</div><h2>{top.name}</h2><div className="focus-metrics"><div><span>صف</span><strong>{top.queue}</strong></div><div><span>ورودی ۲ ساعت</span><strong>{top.arrivalsNext2h}</strong></div><div><span>انتظار</span><strong>{top.estimatedWaitMinutes}m</strong></div></div><RiskBadge level={top.risk}/></article><article className="card"><SectionTitle title="منطق تصمیم" subtitle="چرا این انبار پرریسک شده است؟"/><ul className="plain-list"><li>نسبت صف به تعداد Dock در Risk Score لحاظ می‌شود.</li><li>ورودهای دو ساعت آینده با ضریب سناریوی تامین تعدیل می‌شوند.</li><li>برای انبار سرد، فشار زنجیره سرد به Utilization اضافه می‌شود.</li></ul></article></section><SectionTitle title="تابلوی ۳۰ انبار" subtitle="مرتب‌شده بر اساس بالاترین ریسک"/><div className="table-card"><table><thead><tr><th>انبار</th><th>کلاس</th><th>Dock</th><th>صف</th><th>ETA ورودی</th><th>Utilization</th><th>انتظار</th><th>ریسک</th></tr></thead><tbody>{ordered.map(w=><tr key={w.id}><td><strong>{w.name}</strong><small>{w.city}</small></td><td>{w.type==="COLD"?"سرد":"خشک"}</td><td>{w.docks}</td><td>{w.queue}</td><td>{w.arrivalsNext2h}</td><td>{Math.round(w.utilization*100)}%</td><td>{w.estimatedWaitMinutes} دقیقه</td><td><RiskBadge level={w.risk}/></td></tr>)}</tbody></table></div></>;}
